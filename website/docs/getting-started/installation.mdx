@@ -104,7 +104,8 @@ You will need to install some dependencies manually:
 **Rust:** To install [Rust](https://www.rust-lang.org/), we recommend [installation via rustup](https://rustup.rs/).
 You might need to restart your terminal after installing Rust.
 
-**Build Tools:** Caesar builds [Z3](https://github.com/Z3Prover/z3) itself, so we need [Python](https://www.python.org) and [cmake](https://cmake.org/).
+**Build Tools:** Caesar builds [Z3](https://github.com/Z3Prover/z3) itself, so we need [Python](https://www.python.org)
+and [CMake](https://cmake.org/) together with a C++ compiler supporting C++17. After installation, ensure that CMake uses a suitable compiler TODO: How?.
 
 <Tabs groupId="operating-systems">
   <TabItem value="mac" label="macOS">
@@ -137,6 +138,12 @@ You might need to restart your terminal after installing Rust.
   2. Install Python, CMake and LLVM using the package manager [Chocolatey](https://chocolatey.org/install):
     ```bash
     choco install python cmake llvm
+    ```
+    Alternatively using [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/):
+    ```bash
+    winget install -e --id Python.Python.3.11
+    winget install -e --id Kitware.CMake
+    winget install -e --id LLVM.LLVM
     ```
 
 </TabItem>

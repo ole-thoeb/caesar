@@ -20,6 +20,8 @@ It is a [cargo workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspace
 We try to use [rustdoc](https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html) as much as possible to document how `caesar` works.
 Just run `cargo doc --open` to build and open the Rust API documentation of the project.
 
+Instructions for building `caesar` from source can be found under [getting started](./getting-started/installation.mdx#build-source)
+
 To run all tests, execute `cargo test --all`.
 
 The source code for the `caesar` crate lives in [`src/`](https://github.com/moves-rwth/caesar/tree/master/src).
