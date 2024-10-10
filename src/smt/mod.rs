@@ -5,6 +5,9 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use z3::{ast::Bool, Context, Sort};
 use z3rro::{eureal::EURealSuperFactory, EUReal, Factory, ListFactory, SmtInvariant};
 
+use self::{translate_exprs::TranslateExprs, uninterpreted::Uninterpreteds};
+use crate::ast::{ExprKind, QuantVar, Symbol};
+use crate::limited::get_fuel_domain;
 use crate::{
     ast::{
         BinOpKind, DeclRef, DomainDecl, DomainSpec, ExprBuilder, Ident, QuantOpKind, SpanVariant,
@@ -12,8 +15,6 @@ use crate::{
     },
     tyctx::TyCtx,
 };
-
-use self::{translate_exprs::TranslateExprs, uninterpreted::Uninterpreteds};
 
 pub mod pretty_model;
 pub mod symbolic;
@@ -61,7 +62,10 @@ impl<'ctx> SmtCtx<'ctx> {
                         .iter()
                         .map(|param| ty_to_sort(self, &param.ty))
                         .collect();
-                    let domain: Vec<&Sort<'_>> = domain.iter().collect();
+                    let fuel_sort = ty_to_sort(self, &TyKind::Domain(get_fuel_domain(self.tcx)));
+                    let domain: Vec<&Sort<'_>> = std::iter::once(&fuel_sort)
+                        .chain(domain.iter())
+                        .collect();
                     let range = ty_to_sort(self, &func.output);
                     self.uninterpreteds.add_function(func.name, &domain, &range);
                 }
@@ -113,18 +117,22 @@ impl<'ctx> SmtCtx<'ctx> {
 
                         // create the axiom for the definition if there is a body
                         if let Some(body) = &*body {
+                            let mut quant = builder.quant(
+                                QuantOpKind::Forall,
+                                func.inputs.node.iter().map(|param| param.name),
+                                builder.binary(
+                                    BinOpKind::Eq,
+                                    Some(TyKind::Bool),
+                                    app,
+                                    body.clone(),
+                                ),
+                            );
+                            if let ExprKind::Quant(_, var, _, _) = &mut quant.kind {
+                                var.push(QuantVar::Shadow(Ident::with_dummy_span(Symbol::intern("fuel"))));
+                            }
                             axioms.push((
                                 func.name, // TODO: create a new name for the axiom
-                                translate.t_bool(&builder.quant(
-                                    QuantOpKind::Forall,
-                                    func.inputs.node.iter().map(|param| param.name),
-                                    builder.binary(
-                                        BinOpKind::Eq,
-                                        Some(TyKind::Bool),
-                                        app,
-                                        body.clone(),
-                                    ),
-                                )),
+                                translate.t_bool(&quant),
                             ));
                         }
                     }

@@ -41,6 +41,7 @@ impl<'ctx> Uninterpreteds<'ctx> {
     }
 
     pub fn add_function(&mut self, ident: Ident, domain: &[&Sort<'ctx>], range: &Sort<'ctx>) {
+        println!("adding function {}", ident);
         let symbol = self.symbolizer.get(ident);
         let decl = FuncDecl::new(self.ctx, symbol, domain, range);
         let prev = self.functions.insert(ident, decl);

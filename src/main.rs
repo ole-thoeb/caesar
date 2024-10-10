@@ -32,6 +32,7 @@ use proof_rules::init_encodings;
 use resource_limits::{await_with_resource_limits, LimitError, LimitsRef};
 use servers::{CliServer, LspServer, Server, ServerError};
 use slicing::init_slicing;
+use limited::init_limited;
 use thiserror::Error;
 use timing::DispatchBuilder;
 use tokio::task::JoinError;
@@ -39,6 +40,7 @@ use tracing::{error, info, warn};
 
 use structopt::StructOpt;
 use z3rro::{prover::ProveResult, util::ReasonUnknown};
+
 
 pub mod ast;
 mod driver;
@@ -58,6 +60,7 @@ mod timing;
 pub mod tyctx;
 pub mod vc;
 mod version;
+mod limited;
 
 #[derive(StructOpt, Debug, Default)]
 #[structopt(
@@ -445,6 +448,7 @@ pub(crate) fn single_desugar_test(source: &str) -> Result<String, VerifyError> {
     init_distributions(&mut files, &mut tcx);
     init_lists(&mut files, &mut tcx);
     init_slicing(&mut tcx);
+    init_limited(&mut tcx);
     drop(files);
 
     let mut resolve = Resolve::new(&mut tcx);
@@ -510,6 +514,7 @@ fn verify_files_main(
     init_distributions(&mut files, &mut tcx);
     init_lists(&mut files, &mut tcx);
     init_slicing(&mut tcx);
+    init_limited(&mut tcx);
     drop(files);
 
     let mut resolve = Resolve::new(&mut tcx);
