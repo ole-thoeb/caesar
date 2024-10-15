@@ -650,6 +650,10 @@ impl<'ctx> SmtVcUnit<'ctx> {
         let prover = mk_valid_query_prover(limits_ref, ctx, translate, &self.vc);
         let smtlib = get_smtlib(options, &prover);
 
+        if let Some(ref smtlib) = smtlib {
+            println!("; SMT LIB\n{}", smtlib.clone().into_string());
+        }
+
         let mut slice_solver = SliceSolver::new(slice_vars.clone(), translate, prover);
         let (result, mut slice_model) = slice_solver.slice_while_failing(limits_ref)?;
         if matches!(result, ProveResult::Proof) && options.slice_options.slice_verify {
