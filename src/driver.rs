@@ -511,7 +511,7 @@ impl QuantVcUnit {
         let _entered = span.enter();
         if !options.strict {
             let ctx = Context::new(&Config::default());
-            let smt_ctx = SmtCtx::new(&ctx, tcx);
+            let smt_ctx = SmtCtx::new(&ctx, tcx, options.limited_functions);
             let mut unfolder = Unfolder::new(limits_ref.clone(), &smt_ctx);
             unfolder.visit_expr(&mut self.expr)
         } else {
@@ -647,8 +647,15 @@ impl<'ctx> SmtVcUnit<'ctx> {
         let span = info_span!("SAT check");
         let _entered = span.enter();
 
-        let prover = mk_valid_query_prover(limits_ref, ctx, translate, &self.vc);
+        let mut prover = mk_valid_query_prover(limits_ref, ctx, translate, &self.vc);
+        if options.force_ematching {
+            prover.enforce_ematching();
+        }
         let smtlib = get_smtlib(options, &prover);
+
+        if let Some(ref smtlib) = smtlib {
+            println!("; SMT LIB\n{}", smtlib.clone().into_string());
+        }
 
         let mut slice_solver = SliceSolver::new(slice_vars.clone(), translate, prover);
         let (result, mut slice_model) = slice_solver.slice_while_failing(limits_ref)?;
@@ -704,7 +711,6 @@ fn mk_valid_query_prover<'smt, 'ctx>(
     if let Some(remaining) = limits_ref.time_left() {
         prover.set_timeout(remaining);
     }
-    prover.enforce_ematching();
 
     // add assumptions (from axioms and locals) to the prover
     smt_translate
